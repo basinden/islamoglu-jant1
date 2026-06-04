@@ -1,0 +1,103 @@
+// src/components/product/JantKart.tsx
+import Link from 'next/link';
+import Image from 'next/image';
+import { Calendar, Star } from 'lucide-react';
+import { Jant } from '@prisma/client';
+import { formatPrice, formatDate, buildImageUrl } from '@/lib/utils';
+
+interface JantKartProps {
+  jant: Jant;
+  oneCikan?: boolean;
+}
+
+export default function JantKart({ jant, oneCikan }: JantKartProps) {
+  const satildi = jant.durum === 'SATILDI';
+
+  return (
+    <Link href={`/urunler/${jant.slug}`} className="block group">
+      <div className={`card-hover h-full flex flex-col ${satildi ? 'opacity-75' : ''}`}>
+        {/* Image */}
+        <div className="relative aspect-square overflow-hidden bg-dark-800">
+          <Image
+            src={buildImageUrl(jant.kapak_resmi)}
+            alt={jant.urun_adi}
+            fill
+            className={`object-cover transition-transform duration-500 group-hover:scale-105 ${satildi ? 'grayscale' : ''}`}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+
+          {/* Badges */}
+          <div className="absolute top-3 left-3 flex flex-col gap-2">
+            {satildi ? (
+              <span className="badge-satildi">● Satıldı</span>
+            ) : (
+              <span className="badge-stokta">● Stokta</span>
+            )}
+            {jant.one_cikan && !satildi && (
+              <span className="inline-flex items-center gap-1 bg-yellow-900/60 text-yellow-400 border border-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <Star size={10} fill="currentColor" /> Öne Çıkan
+              </span>
+            )}
+          </div>
+
+          {/* İnç badge */}
+          <div className="absolute top-3 right-3">
+            <span className="bg-dark-950/80 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full border border-dark-700">
+              {jant.jant_inci}&quot;
+            </span>
+          </div>
+
+          {/* Satıldı overlay */}
+          {satildi && (
+            <div className="absolute inset-0 bg-dark-950/40 flex items-center justify-center">
+              <div className="bg-primary-700/90 backdrop-blur-sm text-white font-display text-2xl tracking-widest px-6 py-2 rotate-[-15deg] border border-primary-500">
+                SATILDI
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-4 flex flex-col flex-1">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h3 className="font-semibold text-white group-hover:text-primary-400 transition-colors line-clamp-2 leading-snug">
+              {jant.urun_adi}
+            </h3>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+            <span className="text-xs bg-dark-800 text-dark-300 px-2 py-1 rounded font-mono border border-dark-700">
+              {jant.marka}
+            </span>
+            {jant.bijon_olcusu && (
+              <span className="text-xs bg-dark-800 text-dark-300 px-2 py-1 rounded font-mono border border-dark-700">
+                {jant.bijon_olcusu}
+              </span>
+            )}
+            {jant.et_degeri && (
+              <span className="text-xs bg-dark-800 text-dark-300 px-2 py-1 rounded font-mono border border-dark-700">
+                ET{jant.et_degeri}
+              </span>
+            )}
+          </div>
+
+          <div className="mt-auto flex items-center justify-between">
+            <div>
+              {jant.fiyat ? (
+                <span className={`font-display text-xl tracking-wide ${satildi ? 'text-dark-500 line-through' : 'text-primary-400'}`}>
+                  {formatPrice(Number(jant.fiyat))}
+                </span>
+              ) : (
+                <span className="text-dark-500 text-sm">Fiyat Sorunuz</span>
+              )}
+            </div>
+            <span className="flex items-center gap-1 text-dark-500 text-xs">
+              <Calendar size={11} />
+              {formatDate(jant.eklenme_tarihi)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
